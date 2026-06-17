@@ -4,8 +4,8 @@ const app = express();
 const connectdb = require("./config/db");
 const productRoutes = require("./routes/productroutes");
 const authRoute = require("./routes/authRoute");
-const { register } = require('./controllers/authController');
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static("uploads"));
 
 

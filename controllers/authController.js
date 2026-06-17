@@ -1,78 +1,79 @@
-const User = require("../models/User")
-const bcrypt = require("bcryptjs")
-const jwt = require("jsonwebtoken")
+const User = require('../models/Auth')
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
 
-exports.register = async (req, res) => {
-    try {
-        const existingUser = await User.findOne({
-            email: req.body.email
-        })
-        if (existingUser) {
-            return res.status(401).json({
-                message: "User has been already registered"
-            })
-        }
+exports.register = async(req,res)=>{
+try{
 
-        const hashpassword = await bcrypt.hash(req.body.password, 10)
-        const newUser = await User.create(
-            {
-                name: req.body.name,
-                email: req.body.email,
-                password: hashpassword,
-                address: req.body.address,
-                gender: req.body.gender
-            }
-        )
-        res.status(201).json({
-            message: "User registered successfully",
-            user: newUser
-        })
+    const extistinguser = await User.findOne({
+        email:req.body.email
+    })
+    if(extistinguser){
+       return res.status(400).json({
+        message:"user already registered"
+       })
     }
-    catch (err) {
-        console.log(err)
-        res.status(500).json({
-            message: "Server error",
-            error: err.message
-        })
-    }
+const hashpassword = await  bcrypt.hash(req.body.password,10)
+
+    const user = await User.create({
+        name: req.body.name,
+        email:req.body.email,
+        password:hashpassword
+    })
+
+    res.status(201).json({
+    message: "register done......",
+    user
+ })
+
+}catch(err){
+
+}
 }
 
-exports.login = async (req, res) => {
-    try {
-        const existingUser = await User.findOne(
-            { email: req.body.email }
-        )
-        if (!existingUser) {
-            return res.status(401).json({
-                message: "User not found"
-            })
-        }
-        const ispassCorrect = await bcrypt.compare(req.body.password, existingUser.password)
-        if (!ispassCorrect) {
-            return res.status(401).json({
-                message: "Password entered is incorrect"
-            })
-        }
-        const token = jwt.sign(
-            {
-                id: existingUser._id
-            },
-            "mykeypswrd",
-            {
-                expiresIn: "7d"
-            }
-        )
+exports.login = async (req,res)=>{
+try{
 
-        res.json({
-            message: "login done...",
-            token
-        })
+    const user = await User.findOne({
+        email:req.body.email
+    })
+
+    if(!user){
+return res.status(400).json({
+        message:"user not found "
+       })
     }
-    catch (err) {
-        console.log(err)
-        res.status(500).json({
-            message: "Server error",
-            error: err.message
-        })
+
+    const isMatch = await bcrypt.compare(
+        req.body.password,
+        user.password
+    )
+
+    if(!isMatch){
+  return res.status(400).json({
+    message:"invalid pswrd"
+  })
     }
+
+    const token = jwt.sign(
+        {
+            id:user._id
+        },
+        "mykeypswrd",
+        {
+            expiresIn: "7d"
+        }
+    )
+
+    res.json({
+         message: "login done...",
+        token
+    })
+
+
+
+
+}catch(err){
+
+}
 }
